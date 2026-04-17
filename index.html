@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProblemSolver - OpenAI Slide Solver</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" integrity="sha384-vZTG5X3R0XYp832WgGfmkM6QnQCHW5eFw/Lv+YjR3EmpK9lmcIJbLsIKRROmFet6" crossorigin="anonymous">
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <div>
+        <h1>ProblemSolver</h1>
+        <p>OpenAI API로 수학/과학 문제를 슬라이드 형태로 풀이하고, 그림 DSL을 렌더링합니다.</p>
+      </div>
+    </header>
+
+    <section class="panel" id="controlPanel">
+      <div class="field-row">
+        <label for="apiKey">OpenAI API Key</label>
+        <input id="apiKey" type="password" placeholder="sk-..." autocomplete="off" />
+      </div>
+
+      <div class="field-row">
+        <label for="modelSelect">Model 선택</label>
+        <select id="modelSelect">
+          <option value="gpt-5.4" selected>gpt-5.4</option>
+          <option value="gpt-5.4-mini">gpt-5.4-mini</option>
+        </select>
+      </div>
+
+      <div class="field-row">
+        <label for="problemText">문제 텍스트 입력</label>
+        <textarea id="problemText" rows="6" placeholder="문제 내용을 여기에 입력하세요..."></textarea>
+      </div>
+
+      <div class="field-row">
+        <label for="problemImage">문제 이미지 업로드</label>
+        <input id="problemImage" type="file" accept="image/*" />
+        <div id="imagePreview" class="image-preview"></div>
+      </div>
+
+      <div class="action-row">
+        <button id="solveButton" type="button">문제 풀이 생성</button>
+      </div>
+
+      <div class="hint-box">
+        <strong>사용법</strong>
+        <ul>
+          <li>API Key와 모델을 입력합니다.</li>
+          <li>텍스트 또는 이미지로 문제를 입력(둘 다 가능)합니다.</li>
+          <li>풀이 생성 후 슬라이드를 넘기며 확인합니다.</li>
+          <li>마지막 슬라이드에서 피드백을 입력하면 다시 생성합니다.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="panel" id="slidePanel" hidden>
+      <div class="slide-header">
+        <div>
+          <span id="slideIndex">1</span> / <span id="slideCount">1</span>
+          <h2 id="slideTitle"></h2>
+        </div>
+        <div class="slide-controls">
+          <button id="prevButton" type="button">◀ 이전</button>
+          <button id="nextButton" type="button">다음 ▶</button>
+        </div>
+      </div>
+
+      <div id="slideContent" class="slide-content"></div>
+
+      <div id="feedbackPanel" class="feedback-panel" hidden>
+        <label for="feedbackInput">추가 질문 또는 수정 요청</label>
+        <textarea id="feedbackInput" rows="4" placeholder="예: 특정 부분을 더 자세히 설명해주세요. 또는 이것이 실제로 맞는지 확인해주세요."></textarea>
+        <div class="button-group">
+          <button id="regenerateButton" type="button">전체 다시 생성</button>
+          <button id="addQuestionButton" type="button">질문 추가</button>
+        </div>
+      </div>
+    </section>
+
+    <div id="statusBar" class="status-bar">준비되었습니다.</div>
+  </div>
+
+  <script>
+    // Fallback KaTeX loading
+    (function() {
+      if (typeof katex !== 'undefined') return;
+
+      // Try primary CDN
+      var script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js';
+      script.integrity = 'sha384-CR7Si8jUzn2N/h+zkb9XlrkHHSn+zqAEBGCugZgiId4tm3+TwXN0nvlLEeJRb5x2';
+      script.crossOrigin = 'anonymous';
+      script.onload = function() {
+        console.log('✅ KaTeX loaded from primary CDN');
+      };
+      script.onerror = function() {
+        console.warn('⚠️ Primary CDN failed, trying fallback');
+        // Try fallback CDN
+        var fallbackScript = document.createElement('script');
+        fallbackScript.src = 'https://unpkg.com/katex@0.16.8/dist/katex.min.js';
+        fallbackScript.onload = function() {
+          console.log('✅ KaTeX loaded from fallback CDN');
+        };
+        fallbackScript.onerror = function() {
+          console.error('❌ All KaTeX CDNs failed');
+        };
+        document.head.appendChild(fallbackScript);
+      };
+      document.head.appendChild(script);
+    })();
+  </script>
+  <script src="script.js"></script>
+</body>
+</html>
