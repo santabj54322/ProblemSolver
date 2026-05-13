@@ -5,17 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ProblemSolver - OpenAI Slide Solver</title>
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" integrity="sha384-vZTG5X3R0XYp832WgGfmkM6QnQCHW5eFw/Lv+YjR3EmpK9lmcIJbLsIKRROmFet6" crossorigin="anonymous">
+  <link id="katexCssLink" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" crossorigin="anonymous">
 </head>
 <body>
   <div class="app-shell">
-    <header>
-      <div>
-        <h1>ProblemSolver</h1>
-        <p>OpenAI API로 수학/과학 문제를 슬라이드 형태로 풀이하고, 그림 DSL을 렌더링합니다.</p>
-      </div>
-    </header>
-
     <section class="panel" id="controlPanel">
       <div class="field-row">
         <label for="apiKey">OpenAI API Key</label>
@@ -45,14 +38,33 @@
         <button id="solveButton" type="button">문제 풀이 생성</button>
       </div>
 
-      <div class="hint-box">
+      <div class="muted-box">
         <strong>사용법</strong>
         <ul>
           <li>API Key와 모델을 입력합니다.</li>
           <li>텍스트 또는 이미지로 문제를 입력(둘 다 가능)합니다.</li>
           <li>풀이 생성 후 슬라이드를 넘기며 확인합니다.</li>
-          <li>마지막 슬라이드에서 피드백을 입력하면 다시 생성합니다.</li>
+          <li>마지막 슬라이드에서 질문을 추가하거나 전체 풀이를 다시 생성할 수 있습니다.</li>
         </ul>
+      </div>
+    </section>
+
+    <section class="panel" id="renderPanel">
+      <div class="field-row">
+        <label for="renderInput">AI 응답 붙여넣기 렌더러</label>
+        <textarea id="renderInput" rows="8" placeholder='OpenAI API 로그에서 복사한 JSON 또는 일반 텍스트 응답을 붙여넣으면 표와 수식을 렌더링합니다.'></textarea>
+      </div>
+
+      <div class="action-row">
+        <button id="renderButton" type="button">붙여넣은 응답 렌더링</button>
+      </div>
+
+      <div id="debugPanel" class="debug-panel" hidden>
+        <div class="debug-header">
+          <strong>파싱 디버그</strong>
+          <span id="debugSummary" class="debug-summary"></span>
+        </div>
+        <pre id="debugOutput" class="debug-output"></pre>
       </div>
     </section>
 
@@ -84,6 +96,45 @@
   </div>
 
   <script>
+    (function() {
+      const primaryCss = 'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css';
+      const fallbackCss = 'https://unpkg.com/katex@0.16.8/dist/katex.min.css';
+
+      function appendFallbackCss() {
+        if (document.querySelector('link[data-katex-fallback="true"]')) return;
+        var fallbackLink = document.createElement('link');
+        fallbackLink.rel = 'stylesheet';
+        fallbackLink.href = fallbackCss;
+        fallbackLink.setAttribute('data-katex-fallback', 'true');
+        document.head.appendChild(fallbackLink);
+      }
+
+      function katexCssLooksLoaded() {
+        var probe = document.createElement('span');
+        probe.className = 'katex';
+        probe.innerHTML = '<span class="katex-mathml">x</span><span class="katex-html" aria-hidden="true">x</span>';
+        probe.style.position = 'absolute';
+        probe.style.visibility = 'hidden';
+        document.body.appendChild(probe);
+
+        var mathml = probe.querySelector('.katex-mathml');
+        var style = mathml ? window.getComputedStyle(mathml) : null;
+        var looksLoaded = !!style && style.position === 'absolute' && style.width === '1px';
+
+        probe.remove();
+        return looksLoaded;
+      }
+
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          if (!katexCssLooksLoaded()) {
+            console.warn('⚠️ KaTeX CSS missing or incomplete, loading fallback stylesheet');
+            appendFallbackCss();
+          }
+        }, 120);
+      });
+    })();
+
     // Fallback KaTeX loading
     (function() {
       if (typeof katex !== 'undefined') return;
