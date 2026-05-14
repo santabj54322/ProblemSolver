@@ -1078,7 +1078,7 @@ function changeSlide(nextIndex) {
   currentIndex = nextIndex;
   const slide = currentSlides[currentIndex];
   slideIndexLabel.textContent = String(currentIndex + 1);
-  slideTitle.textContent = slide.title || `슬라이드 ${currentIndex + 1}`;
+  renderSlideTitle(slide.title || `슬라이드 ${currentIndex + 1}`);
   slideContent.innerHTML = '';
 
   slide.items.forEach((item) => renderSlideItem(item, slideContent));
@@ -1086,6 +1086,26 @@ function changeSlide(nextIndex) {
   prevButton.disabled = currentIndex === 0;
   nextButton.disabled = currentIndex === currentSlides.length - 1;
   feedbackPanel.hidden = currentIndex !== currentSlides.length - 1;
+}
+
+function renderSlideTitle(rawTitle) {
+  const title = decodeEscapedUnicode(String(rawTitle || '')).trim();
+  slideTitle.innerHTML = '';
+
+  if (!title) {
+    slideTitle.textContent = '';
+    return;
+  }
+
+  if (isDisplayMathBlock(title)) {
+    const mathWrapper = document.createElement('span');
+    mathWrapper.className = 'inline-math title-math';
+    renderInlineMath(mathWrapper, unwrapDisplayMath(title));
+    slideTitle.appendChild(mathWrapper);
+    return;
+  }
+
+  slideTitle.appendChild(renderInlineContent(title));
 }
 
 function renderSlideItem(item, container) {
